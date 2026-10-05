@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>หลังบ้านจองรถ | BS Express</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=Sarabun:wght@400;500;600&display=swap">
+<style>
+:root{--red:#EA1824;--navy:#1B2E4E;--bg:#F4F6F9;--ink:#22262E;--soft:#667085;--line:#E3E6EA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Sarabun,sans-serif}
+aside{position:fixed;inset:0 auto 0 0;width:220px;background:#fff;border-right:1px solid var(--line);padding:16px 12px;overflow:auto}
+.logo{font:600 21px Kanit,sans-serif;color:var(--red);padding:4px 8px 16px}
+.logo small{display:block;font:400 12px Sarabun,sans-serif;color:var(--soft)}
+aside a{display:flex;justify-content:space-between;padding:9px 10px;border-radius:8px;color:var(--ink);text-decoration:none}
+aside a:hover{background:var(--bg)}aside a.on{background:#EEF1F5;font-weight:600}
+aside a i{font-style:normal;color:var(--soft);font-size:12px}
+main{margin-left:220px;padding:20px 24px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{font:600 22px Kanit,sans-serif;margin:0;color:var(--navy)}
+.btn{border:0;border-radius:6px;padding:8px 14px;font:600 13px Sarabun,sans-serif;color:#fff;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.g{background:#1FA971}.b{background:#2F6FED}.r{background:var(--red)}.o{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px}
+.card{background:#fff;border-radius:10px;padding:14px 16px;border-left:4px solid var(--c);box-shadow:0 1px 3px rgba(16,24,40,.06)}
+.card small{color:var(--soft)}.card b{display:block;font:600 24px Kanit,sans-serif}
+.filters{background:#fff;border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+label{font-size:12px;font-weight:600;display:grid;gap:4px}
+input,select{font:inherit;border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:#fff;width:100%}
+.tbl{background:#fff;border-radius:10px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:860px}
+th{font-size:12px;text-align:left;padding:12px;border-bottom:1px solid var(--line);background:#FAFBFC}
+td{padding:11px 12px;border-bottom:1px solid #EEF0F3;vertical-align:top}
+td small{display:block;color:var(--soft)}
+tr.row{cursor:pointer}tr.row:hover,tr.row:focus{background:#F8FAFC;outline:none}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.empty{padding:28px;text-align:center;color:var(--soft)}
+.warn{color:#B5502E;font-size:13px}
+#ov{position:fixed;inset:0;background:rgba(16,24,40,.35);display:none}
+#ov.on{display:block}
+#dr{position:absolute;top:0;right:0;bottom:0;width:min(460px,100%);background:#fff;padding:20px;overflow:auto}
+#dr h2{font:600 18px Kanit,sans-serif;margin:0}#dr h3{font:600 15px Kanit,sans-serif;margin:18px 0 6px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.kv{display:grid;grid-template-columns:100px 1fr;gap:4px 10px;margin:12px 0}.kv span{color:var(--soft)}
+.slip{max-width:100%;border:1px solid var(--line);border-radius:8px;margin:6px 0}
+.chk{display:flex;gap:8px;align-items:center;font-weight:400;font-size:14px;margin:4px 0}.chk input{width:auto}
+.act{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:9px 16px;border-radius:8px;display:none;z-index:9;max-width:90%}
+@media(max-width:900px){aside{display:none}main{margin-left:0;padding:14px}}
+</style>
+</head>
+<body>
+<aside><div class="logo">BS Express<small>หลังบ้านจองรถ</small></div><nav id="nav"></nav></aside>
+<main>
+  <header>
+    <h1>ออเดอร์จองรถเข้ารับ</h1>
+    <div><button class="btn o" id="reload">โหลดใหม่</button> <button class="btn o" id="run">พิมพ์ใบงานเข้ารับ</button> <button class="btn b" id="csv">ส่งออกไฟล์สำหรับ Quickwin</button></div>
+  </header>
+  <p id="demo" class="warn" hidden></p>
+  <section class="cards" id="cards"></section>
+  <section class="filters">
+    <label>วันที่เข้ารับ (เริ่ม)<input type="date" id="f1"></label>
+    <label>วันที่เข้ารับ (สิ้นสุด)<input type="date" id="f2"></label>
+    <label>ค้นหา<input id="q" placeholder="เลขที่จอง ชื่อ หรือเบอร์"></label>
+    <label>การชำระเงิน<select id="fp"><option value="">ทั้งหมด</option><option value="prepay">โอนก่อน</option><option value="onpickup">จ่ายหน้างาน</option><option value="cod">COD</option></select></label>
+    <label>สถานะ<select id="fs"></select></label>
+  </section>
+  <section class="tbl"><table>
+    <thead><tr><th>เลขที่จอง</th><th>วันที่เข้ารับ</th><th>ผู้ส่ง</th><th>ปลายทาง / พัสดุ</th><th>ยอด (บาท)</th><th>ชำระเงิน</th><th>สถานะ</th></tr></thead>
+    <tbody id="tb"></tbody>
+  </table></section>
+</main>
+<div id="toast" role="status"></div>
+<div id="ov"><div id="dr"></div></div>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbzXCgEGifWHTTEKJWVuRwosEvHd89c-lozYWJZWvW9lk6qPlvuMtciWIVX-reaaXloMAA/exec';   // URL ของ Apps Script (ตัวเดียวกับหน้าจอง) เปิดหน้านี้ด้วย ?demo เพื่อดูโหมดตัวอย่าง
+const DEMO = /[?&]demo/.test(location.search);
+const post = p => fetch(API_URL, {method:'POST', body:JSON.stringify(Object.assign({key:KEY}, p))}).then(r => r.json());
+let curRef = '';
+let KEY = ''; try { KEY = sessionStorage.getItem('bsk') || ''; } catch (e) {}
+const ST = {
+  pay:['รอชำระเงิน','#B5502E','#FBEDE6'], slip:['รอตรวจสลิป','#9A6B00','#FFF4D6'],
+  ready:['พร้อมเข้ารับ','#1D5FBF','#E6F0FD'], billed:['ออกบิลแล้ว','#1F7A4D','#E6F4EC'], cancel:['ยกเลิก','#667085','#EEF0F3']
+};
+const PM = {prepay:'โอนก่อน', onpickup:'จ่ายหน้างาน', cod:'COD'};
+const $ = id => document.getElementById(id);
+const baht = n => Number(n || 0).toLocaleString('th-TH');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const d = n => { const t = new Date(); t.setDate(t.getDate() + n); return t.toISOString().slice(0, 10); };
+const SLIP = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="170"><rect width="300" height="170" fill="#F1F3F6"/><text x="150" y="90" text-anchor="middle" font-size="15" fill="#667085">รูปสลิปตัวอย่าง</text></svg>');
+let rows = [];
+const demo = () => [
+  {ref:'BK20261005-7K2M',pickupDate:d(1),sender:'คุณสมชาย ใจดี',phone:'081-234-5678',addr:'12/3 ต.ท่าพี่เลี้ยง อ.เมือง จ.สุพรรณบุรี',receiver:'คุณมาลี รักดี',dest:'เชียงใหม่',items:'กล่อง M x2 (8 กก.)',total:210,pay:'prepay',status:'slip',slipUrl:SLIP,note:'โทรก่อนเข้ารับ',billNo:''},
+  {ref:'BK20261005-Q9XA',pickupDate:d(1),sender:'ร้านผ้าไทยสุพรรณ',phone:'089-111-2233',addr:'88 ถ.พระพันวษา อ.เมือง จ.สุพรรณบุรี',receiver:'คุณนิภา',dest:'ขอนแก่น',items:'กล่อง L x5 (32 กก.)',total:640,pay:'onpickup',status:'ready',note:'',billNo:''},
+  {ref:'BK20261004-H3PD',pickupDate:d(0),sender:'คุณวิไล สุขใจ',phone:'086-555-0101',addr:'5 ม.2 ต.รั้วใหญ่ อ.เมือง จ.สุพรรณบุรี',receiver:'คุณประเสริฐ',dest:'ภูเก็ต',items:'กล่อง S x1 (3 กก.)',total:120,pay:'prepay',status:'pay',note:'',billNo:'',lineLinked:true},
+  {ref:'BK20261003-L6TZ',pickupDate:d(-2),sender:'คุณอนันต์ ศรีทอง',phone:'090-777-8899',addr:'41 ต.สนามชัย อ.เมือง จ.สุพรรณบุรี',receiver:'ร้านดอกไม้บางนา',dest:'กรุงเทพฯ',items:'กล่อง M x3 (14 กก.)',total:330,pay:'cod',status:'billed',note:'',billNo:'QW2610030142'},
+  {ref:'BK20261002-B2WE',pickupDate:d(-3),sender:'คุณทดสอบ ระบบ',phone:'080-000-0000',addr:'-',receiver:'-',dest:'ระยอง',items:'กล่อง S x1',total:90,pay:'prepay',status:'cancel',note:'จองทดสอบ',billNo:''}
+];
+
+function view() {
+  const a = $('f1').value, b = $('f2').value, q = $('q').value.trim().toLowerCase(), p = $('fp').value, s = $('fs').value;
+  return rows.filter(o => (!a || o.pickupDate >= a) && (!b || o.pickupDate <= b) && (!p || o.pay === p) && (!s || o.status === s) &&
+    (!q || [o.ref, o.sender, o.phone, o.receiver].join(' ').toLowerCase().includes(q)));
+}
+function render() {
+  const nSlip = rows.filter(o => o.status === 'slip').length; document.title = (nSlip ? '(' + nSlip + ') ' : '') + 'หลังบ้าน BS Express';
+  const v = view(), cv = k => v.filter(o => o.status === k).length, ca = k => rows.filter(o => o.status === k).length;
+  const sum = v.filter(o => o.status !== 'cancel').reduce((t, o) => t + Number(o.total || 0), 0);
+  $('cards').innerHTML = [['จำนวนออเดอร์', v.length, '#2F6FED'], ['รอตรวจสลิป', cv('slip'), '#F5A300'], ['พร้อมเข้ารับ / รอออกบิล', cv('ready'), '#1FA971'], ['ยอดรวม (บาท)', baht(sum), '#EA1824']]
+    .map(c => '<div class="card" style="--c:' + c[2] + '"><small>' + c[0] + '</small><b>' + c[1] + '</b></div>').join('');
+  $('nav').innerHTML = [['', 'ออเดอร์ทั้งหมด', rows.length]].concat(Object.keys(ST).map(k => [k, ST[k][0], ca(k)]))
+    .map(n => '<a href="#" data-s="' + n[0] + '" class="' + (n[0] === $('fs').value ? 'on' : '') + '">' + n[1] + '<i>' + n[2] + '</i></a>').join('');
+  $('tb').innerHTML = v.length ? v.map(o => {
+    const s = ST[o.status] || ST.pay;
+    return '<tr class="row" tabindex="0" data-r="' + esc(o.ref) + '"><td><b>' + esc(o.ref) + '</b></td><td>' + esc(o.pickupDate) + '</td><td>' + esc(o.sender) + '<small>' + esc(o.phone) + '</small></td><td>' +
+      esc(o.dest) + '<small>' + esc(o.items) + '</small></td><td>' + baht(o.total) + '</td><td>' + (PM[o.pay] || '') + '</td><td><span class="chip" style="color:' + s[1] + ';background:' + s[2] + '">' + s[0] + '</span></td></tr>';
+  }).join('') : '<tr><td colspan="7" class="empty">ไม่พบออเดอร์ตามเงื่อนไขที่เลือก ลองล้างตัวกรองหรือขยายช่วงวันที่</td></tr>';
+}
+
+const msgPay = o => 'BS Express เตือนชำระเงินการจอง ' + o.ref + '\nยอดที่ต้องโอน ' + baht(o.total) + ' บาท โอนแล้วส่งสลิปในแชทนี้ได้เลยครับ';
+const msgBill = o => 'BS Express แจ้งสถานะการจอง ' + o.ref + '\nรับพัสดุและออกบิลเรียบร้อยแล้ว เลขบิล: ' + o.billNo + '\nติดตามพัสดุได้ที่ https://www.bsgroupth.com/check-qw-status';
+function copy(t, btn) { navigator.clipboard.writeText(t).then(() => { const x = btn.textContent; btn.textContent = 'คัดลอกแล้ว ✓'; setTimeout(() => btn.textContent = x, 1400); }); }
+
+const lnMsg = m => m === 'OK' ? 'แจ้งลูกค้าทาง LINE แล้ว ✓' : m === 'no-user' ? 'ลูกค้ายังไม่ได้เชื่อม LINE ใช้ปุ่มคัดลอกข้อความแทน' : m === 'off' ? 'ยังไม่เปิดแจ้งลูกค้าอัตโนมัติ (NOTIFY_CUSTOMER)' : m === 'skip' || !m ? '' : 'ส่ง LINE ไม่สำเร็จ: ' + m;
+let tt; function toast(m) { if (!m) return; const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(tt); tt = setTimeout(() => t.style.display = 'none', 3500); }
+async function notify(o, kind) {
+  if (DEMO) return toast('โหมดตัวอย่าง ไม่ได้ส่งจริง');
+  try { const j = await post({action:'notify', ref:o.ref, kind}); toast(j.ok ? lnMsg(j.line) : 'ส่งไม่สำเร็จ ตรวจรหัสเข้าหลังบ้าน'); }
+  catch (e) { toast('ส่งไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่'); }
+}
+async function setO(o, p) {
+  let j = {};
+  if (API_URL && !DEMO) {
+    try {
+      j = await post(Object.assign({action:'update', ref:o.ref}, p));
+      if (!j.ok) { if (j.error === 'unauthorized') { KEY = ''; try { sessionStorage.removeItem('bsk'); } catch (e) {} } throw 0; }
+    } catch (e) { alert('บันทึกไม่สำเร็จ ตรวจอินเทอร์เน็ตหรือรหัสเข้าหลังบ้านแล้วลองใหม่อีกครั้ง'); return; }
+  }
+  Object.assign(o, p); if (p.status) toast(lnMsg(j.line)); render(); openO(o.ref);
+}
+async function loadSlip(o) {
+  const show = u => { if (curRef === o.ref && $('slipBox')) $('slipBox').innerHTML = u; };
+  const img = d => '<img class="slip" src="' + esc(d) + '" alt="สลิปโอนเงิน">' + (o.slipUrl && !/^data:/.test(o.slipUrl) ? '<a href="' + esc(o.slipUrl) + '" target="_blank" rel="noopener">เปิดไฟล์ใน Drive</a>' : '');
+  if (o.slipData || /^data:/.test(o.slipUrl || '')) return show(img(o.slipData || o.slipUrl));
+  try { const j = await post({action:'slip', ref:o.ref}); if (!j.ok) throw 0; o.slipData = j.data; show(img(j.data)); }
+  catch (e) { show('<p class="warn">โหลดรูปสลิปไม่สำเร็จ ลองเปิดออเดอร์ใหม่อีกครั้ง</p>'); }
+}
+
+function openO(ref) {
+  const o = rows.find(x => x.ref === ref); if (!o) return;
+  const s = ST[o.status] || ST.pay; let act = '';
+  if (o.status === 'slip') act = '<h3>ตรวจสลิป</h3>' + (o.dupSlip ? '<p class="warn">⚠ ไฟล์สลิปนี้ซ้ำกับออเดอร์อื่น ตรวจให้ดีก่อนยืนยัน</p>' : '') + '<div id="slipBox">' + (o.hasSlip || o.slipUrl ? 'กำลังโหลดสลิป...' : '<p class="warn">ยังไม่มีรูปสลิป</p>') + '</div>' +
+    '<label class="chk"><input type="checkbox" class="ck">ยอดเงินตรงกับ ' + baht(o.total) + ' บาท</label>' +
+    '<label class="chk"><input type="checkbox" class="ck">ผู้รับเงินเป็นบัญชีของบริษัท</label>' +
+    '<label class="chk"><input type="checkbox" class="ck">ไม่ใช่สลิปซ้ำกับออเดอร์อื่น</label>' +
+    '<div class="act"><button class="btn g" id="ok" disabled>ยืนยันชำระเงิน</button><button class="btn o" data-st="pay">สลิปไม่ถูกต้อง ให้ส่งใหม่</button></div>';
+  else if (o.status === 'pay') act = '<h3>รอชำระเงิน</h3><p>ยังไม่ได้รับสลิปจากลูกค้า</p><div class="act">' + (o.lineLinked ? '<button class="btn b" id="rl">ส่งเตือนทาง LINE</button>' : '') + '<button class="btn o" id="cp">คัดลอกข้อความเตือนชำระเงิน</button></div>';
+  else if (o.status === 'ready') act = '<h3>ออกบิล</h3><label>เลขบิลจาก Quickwin<input id="bn" placeholder="กรอกหลังคีย์บิลใน Quickwin แล้ว"></label><div class="act"><button class="btn g" id="sb">บันทึกเลขบิล</button></div>';
+  else if (o.status === 'billed') act = '<h3>แจ้งลูกค้า</h3><div class="act">' + (o.lineLinked ? '<button class="btn b" id="nb">ส่งเลขบิลทาง LINE</button>' : '') + '<button class="btn o" id="cc">คัดลอกข้อความแจ้งเลขบิล</button><button class="btn o" id="pb">พิมพ์ใบรับการจอง</button></div>';
+  if (o.status !== 'cancel' && o.status !== 'billed') act += '<div class="act"><button class="btn o" id="cx" style="color:#B5502E">ยกเลิกออเดอร์</button></div>';
+  $('dr').innerHTML = '<div class="top"><h2>' + esc(o.ref) + '</h2><button class="btn o" id="x">ปิด</button></div>' +
+    '<span class="chip" style="color:' + s[1] + ';background:' + s[2] + '">' + s[0] + '</span>' +
+    '<div class="kv"><span>ผู้ส่ง</span><div>' + esc(o.sender) + ' ' + esc(o.phone) + '</div><span>เข้ารับที่</span><div>' + esc(o.addr) + '</div><span>วันที่เข้ารับ</span><div>' + esc(o.pickupDate) + '</div>' +
+    '<span>ผู้รับ</span><div>' + esc(o.receiver) + ' (' + esc(o.dest) + ')</div><span>ที่อยู่ผู้รับ</span><div>' + esc(o.rAddr || '-') + '</div><span>พัสดุ</span><div style="white-space:pre-line">' + esc(o.items) + (o.detail ? '\n' + esc(o.detail) : '') + (o.traits ? '\n' + esc(o.traits) : '') + '</div><span>ยอดรวม</span><div><b>' + baht(o.total) + ' บาท</b> • ' + (PM[o.pay] || '') + '</div>' +
+    '<span>หมายเหตุ</span><div>' + esc(o.note || '-') + '</div><span>เลขบิล</span><div>' + esc(o.billNo || '-') + '</div><span>LINE ลูกค้า</span><div>' + (o.lineLinked ? '✓ เชื่อมแล้ว' : 'ยังไม่เชื่อม (ให้ลูกค้าส่งเลขที่จองในแชท LINE)') + '</div></div>' + act;
+  curRef = o.ref; $('ov').classList.add('on');
+  $('x').onclick = closeO;
+  if (o.status === 'slip' && (o.hasSlip || o.slipUrl)) loadSlip(o);
+  const ks = [].slice.call(document.querySelectorAll('.ck')), ok = $('ok');
+  if (ok) { ks.forEach(k => k.onchange = () => ok.disabled = !ks.every(x => x.checked)); ok.onclick = () => setO(o, {status:'ready'}); }
+  [].slice.call(document.querySelectorAll('[data-st]')).forEach(b => b.onclick = () => setO(o, {status:b.dataset.st}));
+  if ($('cp')) $('cp').onclick = e => copy(msgPay(o), e.target);
+  if ($('cc')) $('cc').onclick = e => copy(msgBill(o), e.target);
+  if ($('rl')) $('rl').onclick = () => notify(o, 'remind');
+  if ($('nb')) $('nb').onclick = () => notify(o, 'billed');
+  if ($('pb')) $('pb').onclick = () => printBill(o);
+  if ($('sb')) $('sb').onclick = () => { const v = $('bn').value.trim(); if (!v) { $('bn').focus(); return; } setO(o, {status:'billed', billNo:v}); };
+  if ($('cx')) $('cx').onclick = () => { if (confirm('ยกเลิกออเดอร์ ' + o.ref + ' ?')) setO(o, {status:'cancel'}); };
+}
+function closeO() { $('ov').classList.remove('on'); }
+
+function printBill(o) {
+  const w = window.open('', '_blank'); if (!w) { alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาตป๊อปอัป'); return; }
+  const r = (a, b) => '<tr><td>' + a + '</td><td>' + b + '</td></tr>';
+  w.document.write('<!DOCTYPE html><meta charset="utf-8"><title>ใบรับการจอง ' + esc(o.ref) + '</title><style>body{font:14px/1.6 Sarabun,sans-serif;max-width:640px;margin:24px auto;color:#22262E}h1{font-size:20px;margin:0}table{width:100%;border-collapse:collapse;margin-top:14px}td{padding:7px 0;border-bottom:1px solid #ddd}td:first-child{color:#667085;width:140px}.t{font-size:20px;font-weight:700;color:#EA1824}</style>' +
+    '<h1>บริษัท บีเอส เอ็กซ์เพรส 2020 จำกัด</h1><p>ใบรับการจองเข้ารับพัสดุ</p><table>' + r('เลขที่จอง', esc(o.ref)) + r('เลขบิล', esc(o.billNo || '-')) + r('วันที่เข้ารับ', esc(o.pickupDate)) +
+    r('ผู้ส่ง', esc(o.sender) + ' ' + esc(o.phone)) + r('ผู้รับ', esc(o.receiver) + ' (' + esc(o.dest) + ')') + r('พัสดุ', esc(o.items)) + r('ชำระเงิน', PM[o.pay] || '') +
+    '<tr><td>ยอดรวม</td><td class="t">' + baht(o.total) + ' บาท</td></tr></table><p style="color:#667085;font-size:12px">ยอดตามการตรวจสอบพัสดุจริงหน้างาน</p><script>onload=function(){print()}<\/script>');
+  w.document.close();
+}
+
+function printRun() {
+  const l = view().filter(o => o.status !== 'cancel').sort((a, b) => (a.pickupDate || '').localeCompare(b.pickupDate || ''));
+  if (!l.length) { alert('ไม่มีออเดอร์ตามตัวกรองที่เลือก'); return; }
+  const w = window.open('', '_blank'); if (!w) { alert('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ กรุณาอนุญาตป๊อปอัป'); return; }
+  const cash = l.filter(o => o.pay === 'onpickup').reduce((t, o) => t + Number(o.total || 0), 0);
+  const tr = l.map(o => '<tr><td>' + esc(o.pickupDate) + '</td><td>' + esc(o.ref) + '</td><td>' + esc(o.sender) + '<br>' + esc(o.phone) + '</td><td>' + esc(o.addr) + '</td><td>' + esc(o.items) + (o.traits ? '<br>' + esc(o.traits) : '') + '</td><td>' + (o.pay === 'onpickup' ? '<b>' + baht(o.total) + '</b>' : '-') + '</td><td>' + esc(o.note || '') + '</td></tr>').join('');
+  w.document.write('<!DOCTYPE html><meta charset="utf-8"><title>ใบงานเข้ารับพัสดุ</title><style>body{font:13px/1.5 Sarabun,sans-serif;margin:16px;color:#22262E}h1{font-size:18px;margin:0}p{margin:4px 0 10px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbb;padding:5px 7px;text-align:left;vertical-align:top}th{background:#eee}</style>' +
+    '<h1>ใบงานเข้ารับพัสดุ BS Express</h1><p>พิมพ์ ' + esc(d(0)) + ' • ' + l.length + ' งาน • เก็บเงินหน้างานรวม ' + baht(cash) + ' บาท</p><table><tr><th>วันที่รับ</th><th>เลขที่จอง</th><th>ผู้ส่ง</th><th>ที่อยู่เข้ารับ</th><th>พัสดุ</th><th>เก็บเงินหน้างาน</th><th>หมายเหตุ</th></tr>' + tr + '</table><script>onload=function(){print()}<\/script>');
+  w.document.close();
+}
+
+function csv() {
+  const H = ['เลขที่จอง','วันที่เข้ารับ','ผู้ส่ง','เบอร์ผู้ส่ง','ที่อยู่เข้ารับ','ผู้รับ','ปลายทาง','รายการพัสดุ','ยอดรวม','ชำระเงิน','หมายเหตุ'];   // ปรับหัวคอลัมน์ให้ตรงเทมเพลตนำเข้า Excel ของ Quickwin
+  const L = view().map(o => [o.ref, o.pickupDate, o.sender, o.phone, o.addr, o.receiver, o.dest, o.items, o.total, PM[o.pay], o.note]);
+  const t = [H].concat(L).map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + t], {type:'text/csv'})); a.download = 'bs-orders-' + d(0) + '.csv'; a.click();
+}
+
+async function load(quiet) {
+  if (!API_URL || DEMO) { rows = demo(); $('demo').hidden = false; $('demo').textContent = 'โหมดตัวอย่าง: ข้อมูลในหน้านี้เป็นข้อมูลสมมติ ยังไม่ได้เชื่อม Google Sheet'; render(); return; }
+  if (!KEY) { KEY = prompt('รหัสเข้าหลังบ้าน') || ''; try { sessionStorage.setItem('bsk', KEY); } catch (e) {} }
+  if (!quiet) $('tb').innerHTML = '<tr><td colspan="7" class="empty">กำลังโหลดออเดอร์...</td></tr>';
+  try {
+    const j = await post({action:'list'});
+    if (!j.ok) { if (j.error === 'unauthorized') { KEY = ''; try { sessionStorage.removeItem('bsk'); } catch (e) {} } throw j; }
+    rows = j.rows; render();
+  } catch (e) {
+    if (quiet) return;
+    const m = {unauthorized:'รหัสเข้าหลังบ้านไม่ถูกต้อง กด “โหลดใหม่” แล้วใส่รหัสอีกครั้ง', locked:'ใส่รหัสผิดหลายครั้ง ระบบล็อกไว้ 10 นาที', 'ADMIN_KEY not set':'ยังไม่ได้ตั้ง ADMIN_KEY ใน Script properties ของ Apps Script'}[e && e.error];
+    $('tb').innerHTML = '<tr><td colspan="7" class="empty">' + (m || 'โหลดข้อมูลไม่สำเร็จ ตรวจอินเทอร์เน็ต หรือยัง Deploy Code.gs เวอร์ชันใหม่ไม่ครบ แล้วกด “โหลดใหม่”') + '</td></tr>';
+  }
+}
+
+$('fs').innerHTML = '<option value="">ทั้งหมด</option>' + Object.keys(ST).map(k => '<option value="' + k + '">' + ST[k][0] + '</option>').join('');
+['f1','f2','q','fp','fs'].forEach(id => $(id).addEventListener('input', render));
+$('nav').onclick = e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); $('fs').value = a.dataset.s; render(); };
+$('tb').onclick = e => { const r = e.target.closest('tr.row'); if (r) openO(r.dataset.r); };
+$('tb').onkeydown = e => { if (e.key === 'Enter') { const r = e.target.closest('tr.row'); if (r) openO(r.dataset.r); } };
+$('ov').onclick = e => { if (e.target === $('ov')) closeO(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeO(); });
+$('reload').onclick = () => load(); $('csv').onclick = csv; $('run').onclick = printRun;
+load();
+setInterval(() => { if (API_URL && !DEMO && KEY && !$('ov').classList.contains('on')) load(true); }, 60000);   // รีเฟรชเงียบๆ ทุก 1 นาที ตอนไม่ได้เปิดแผงรายละเอียด
+</script>
+</body>
+</html>
